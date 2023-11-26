@@ -121,7 +121,7 @@ public:
 
 /*
  * Method: getFirstLineNumber
- * Usage: int lineNumber = program.getFirstLineNumber();
+ * Usage: int lineNumber = program.getFirstLineNumber();+
  * -----------------------------------------------------
  * Returns the line number of the first line in the program.
  * If the program has no lines, this method returns -1.
@@ -138,15 +138,25 @@ public:
  * in the program.  If no more lines remain, this method returns -1.
  */
 
-    int getNextLineNumber(int lineNumber);
+    int getNextLineNumber();
 
     //more func to add
     //todo
+
+    int getNowLineNumber() const;
+
+    void changeNowLineNumber(int lineNumber);
 
 private:
 
     // Fill this in with whatever types and instance variables you need
     //todo
+
+    std::set<int> line_list;
+    std::unordered_map<int, std::string> source_line;
+    std::unordered_map<int, Statement*> parsed_line;
+    int nowLineNumber;
+
 };
 
 #endif

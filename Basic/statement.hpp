@@ -14,6 +14,7 @@
 
 #include <string>
 #include <sstream>
+#include <utility>
 #include "evalstate.hpp"
 #include "exp.hpp"
 #include "Utils/tokenScanner.hpp"
@@ -84,5 +85,130 @@ public:
  * an Expression object), the class implementation must also
  * specify its own destructor method to free that memory.
  */
+
+class LetStmt : public Statement {
+
+public:
+
+    LetStmt(Expression *exp);
+
+    void execute(EvalState &state, Program &program) override;
+
+private:
+
+    std::string valName;
+    Expression *exp;
+
+};
+
+class PrintStmt : public Statement {
+
+public:
+
+    PrintStmt(Expression *exp);
+
+    void execute(EvalState &state, Program &program) override;
+
+private:
+
+    Expression *exp;
+
+};
+
+class InputStmt : public Statement {
+
+public:
+
+    InputStmt(IdentifierExp *valName);
+
+    void execute(EvalState &state, Program &program) override;
+
+private:
+
+    IdentifierExp *valName;
+
+};
+
+class EndStmt : public Statement {
+
+public:
+
+    void execute(EvalState &state, Program &program) override;
+
+};
+
+class RunStmt : public Statement {
+
+public:
+
+    void execute(EvalState &state, Program &program) override;
+
+};
+
+class ListStmt : public Statement {
+
+public:
+
+    void execute(EvalState &state, Program &program) override;
+
+};
+
+class GoToStmt : public Statement {
+
+public:
+
+    GoToStmt(int toLineNumber);
+
+    void execute(EvalState &state, Program &program) override;
+
+private:
+
+    int toLineNumber;
+
+};
+
+class IfStmt : public Statement {
+
+public:
+
+    IfStmt(Expression *lhs, std::string cmp, Expression *rhs, int toLineNumber);
+
+    void execute(EvalState &state, Program &program) override;
+
+private:
+
+    Expression *lhs;
+
+    std::string cmp;
+
+    Expression *rhs;
+
+    int toLineNumber;
+
+};
+
+class QuitStmt : public Statement {
+
+public:
+
+    void execute(EvalState &state, Program &program) override;
+
+};
+
+class HelpStmt : public Statement {
+
+public:
+
+    void execute(EvalState &state, Program &program) override;
+
+};
+
+class ClearStmt : public Statement {
+
+public:
+
+    void execute(EvalState &state, Program &program) override;
+
+};
 
 #endif
