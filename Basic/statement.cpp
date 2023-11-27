@@ -28,10 +28,18 @@ void LetStmt::execute(EvalState &state, Program &program) {
     exp->eval(state);
 }
 
+LetStmt::~LetStmt() {
+    delete exp;
+}
+
 PrintStmt::PrintStmt(Expression *exp) : exp(exp) {}
 
 void PrintStmt::execute(EvalState &state, Program &program) {
     std::cout << exp->eval(state) << '\n';
+}
+
+PrintStmt::~PrintStmt() {
+    delete exp;
 }
 
 InputStmt::InputStmt(IdentifierExp *valName) : valName(valName) {}
@@ -39,8 +47,15 @@ InputStmt::InputStmt(IdentifierExp *valName) : valName(valName) {}
 void InputStmt::execute(EvalState &state, Program &program) {
     std::cout << " ? ";
     int value;
-    std::cin >> value;
+    while (!(std::cin >> value)) {
+        std::cout << "SYNTAX ERROR\n";
+    }
+    getchar();
     state.setValue(valName->getName(), value);
+}
+
+InputStmt::~InputStmt() {
+    delete valName;
 }
 
 void EndStmt::execute(EvalState &state, Program &program) {
@@ -90,6 +105,11 @@ void IfStmt::execute(EvalState &state, Program &program) {
         }
         program.changeNowLineNumber(toLineNumber);
     }
+}
+
+IfStmt::~IfStmt() {
+    delete lhs;
+    delete rhs;
 }
 
 GoToStmt::GoToStmt(int toLineNumber) : toLineNumber(toLineNumber) {}

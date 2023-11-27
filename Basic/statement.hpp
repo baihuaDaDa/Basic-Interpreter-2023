@@ -94,6 +94,8 @@ public:
 
     void execute(EvalState &state, Program &program) override;
 
+    ~LetStmt();
+
 private:
 
     std::string valName;
@@ -109,6 +111,8 @@ public:
 
     void execute(EvalState &state, Program &program) override;
 
+    ~PrintStmt();
+
 private:
 
     Expression *exp;
@@ -122,6 +126,8 @@ public:
     InputStmt(IdentifierExp *valName);
 
     void execute(EvalState &state, Program &program) override;
+
+    ~InputStmt();
 
 private:
 
@@ -174,6 +180,8 @@ public:
     IfStmt(Expression *lhs, std::string cmp, Expression *rhs, int toLineNumber);
 
     void execute(EvalState &state, Program &program) override;
+
+    ~IfStmt();
 
 private:
 
