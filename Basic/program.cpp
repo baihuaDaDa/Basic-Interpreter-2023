@@ -22,7 +22,11 @@ void Program::clear() {
     for (auto iter = line_list.begin(); iter != line_list.end(); iter++) {
         delete parsed_line[*iter];
     }
+    for (auto iter = temporary_line.begin(); iter != temporary_line.end(); iter++) {
+        delete *iter;
+    }
     parsed_line.clear();
+    temporary_line.clear();
     line_list.clear();
     source_line.clear();
 }
@@ -43,6 +47,8 @@ void Program::removeSourceLine(int lineNumber) {
     }
     line_list.erase(iter_lineNumber);
     source_line.erase(lineNumber);
+    delete parsed_line[lineNumber];
+    parsed_line.erase(lineNumber);
 }
 
 std::string Program::getSourceLine(int lineNumber) {
@@ -62,6 +68,7 @@ void Program::setParsedStatement(int lineNumber, Statement *stmt) {
         error("Compiled Error");
         return;
     }
+    delete parsed_line[lineNumber];
     parsed_line[lineNumber] = stmt;
 }
 
@@ -105,4 +112,8 @@ int Program::getNowLineNumber() const {
 
 void Program::changeNowLineNumber(int lineNumber) {
     nowLineNumber = lineNumber;
+}
+
+void Program::addTemporaryLine(Statement *Stmt) {
+    temporary_line.push_back(Stmt);
 }

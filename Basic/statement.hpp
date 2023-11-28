@@ -94,11 +94,10 @@ public:
 
     void execute(EvalState &state, Program &program) override;
 
-    ~LetStmt();
+    ~LetStmt() override;
 
 private:
 
-    std::string valName;
     Expression *exp;
 
 };
@@ -212,6 +211,14 @@ public:
 };
 
 class ClearStmt : public Statement {
+
+public:
+
+    void execute(EvalState &state, Program &program) override;
+
+};
+
+class RemStmt : public Statement {
 
 public:
 

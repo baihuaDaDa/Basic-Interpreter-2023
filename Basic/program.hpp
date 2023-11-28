@@ -147,6 +147,8 @@ public:
 
     void changeNowLineNumber(int lineNumber);
 
+    void addTemporaryLine(Statement *Stmt);
+
 private:
 
     // Fill this in with whatever types and instance variables you need
@@ -156,6 +158,7 @@ private:
     std::unordered_map<int, std::string> source_line;
     std::unordered_map<int, Statement*> parsed_line;
     int nowLineNumber;
+    std::vector<Statement*> temporary_line;
 
 };
 

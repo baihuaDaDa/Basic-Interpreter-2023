@@ -45,12 +45,32 @@ PrintStmt::~PrintStmt() {
 InputStmt::InputStmt(IdentifierExp *valName) : valName(valName) {}
 
 void InputStmt::execute(EvalState &state, Program &program) {
-    std::cout << " ? ";
-    int value;
-    while (!(std::cin >> value)) {
-        std::cout << "SYNTAX ERROR\n";
+    int value = 0, sign = 1;
+    bool flag = false;
+    std::string tmp_in;
+    while (true) {
+        value = 0;
+        sign = 1;
+        flag = false;
+        std::cout << " ? ";
+        getline(std::cin, tmp_in);
+        for (int i = 0; i < tmp_in.size(); i++) {
+            if (isdigit(tmp_in[i])) {
+                value = value * 10 + (tmp_in[i] - '0');
+            } else if (tmp_in[i] == '-' && i == 0) {
+                sign = -1;
+            } else {
+                flag = true;
+                break;
+            }
+        }
+        if (flag) {
+            std::cout << "INVALID NUMBER\n";
+            continue;
+        }
+        break;
     }
-    getchar();
+    value *= sign;
     state.setValue(valName->getName(), value);
 }
 
@@ -63,7 +83,8 @@ void EndStmt::execute(EvalState &state, Program &program) {
 }
 
 void QuitStmt::execute(EvalState &state, Program &program) {
-    exit(0);
+    program.clear();
+    state.Clear();
 }
 
 void HelpStmt::execute(EvalState &state, Program &program) {
@@ -75,7 +96,7 @@ void HelpStmt::execute(EvalState &state, Program &program) {
 void ListStmt::execute(EvalState &state, Program &program) {
     program.changeNowLineNumber(program.getFirstLineNumber());
     while (program.getNowLineNumber() != -1) {
-        std::cout << program.getSourceLine(program.getNowLineNumber());
+        std::cout << program.getSourceLine(program.getNowLineNumber()) << '\n';
         program.changeNowLineNumber(program.getNextLineNumber());
     }
 }
@@ -104,6 +125,7 @@ void IfStmt::execute(EvalState &state, Program &program) {
             return;
         }
         program.changeNowLineNumber(toLineNumber);
+        program.getParsedStatement(program.getNowLineNumber())->execute(state, program);
     }
 }
 
@@ -120,6 +142,7 @@ void GoToStmt::execute(EvalState &state, Program &program) {
         return;
     }
     program.changeNowLineNumber(toLineNumber);
+    program.getParsedStatement(program.getNowLineNumber())->execute(state, program);
 }
 
 void RunStmt::execute(EvalState &state, Program &program) {
@@ -128,4 +151,7 @@ void RunStmt::execute(EvalState &state, Program &program) {
         program.getParsedStatement(program.getNowLineNumber())->execute(state, program);
         program.changeNowLineNumber(program.getNextLineNumber());
     }
+}
+
+void RemStmt::execute(EvalState &state, Program &program) {
 }

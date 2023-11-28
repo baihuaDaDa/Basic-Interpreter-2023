@@ -58,62 +58,49 @@ void processLine(std::string line, Program &program, EvalState &state) {
     scanner.setInput(line);
     std::string token;
     int lineNumber;
+    Statement *stmt;
     if (scanner.hasMoreTokens()) {
         token = scanner.nextToken();
         if (scanner.getTokenType(token) == NUMBER) {
             lineNumber = stringToInteger(token);
-            program.addSourceLine(lineNumber, line);
-            token = scanner.nextToken();
-            if (token == "REM") {
+            if (!scanner.hasMoreTokens()) {
+                program.removeSourceLine(lineNumber);
                 return;
             }
-            if (token == "LET") {
+            token = scanner.nextToken();
+            if (token == "REM") {
+                stmt = new RemStmt;
+            } else if (token == "LET") {
                 Expression *tmpExp = readE(scanner);
                 if (scanner.hasMoreTokens()) {
                     std::cout << "SYNTAX ERROR\n";
                     return;
                 }
-                Statement *letStmt;
-                letStmt = new LetStmt(tmpExp);
-                program.setParsedStatement(lineNumber, letStmt);
-                return;
-            }
-            if (token == "INPUT") {
+                stmt = new LetStmt(tmpExp);
+            } else if (token == "INPUT") {
                 Expression *val = readT(scanner);
                 if (scanner.hasMoreTokens()) {
                     std::cout << "SYNTAX ERROR\n";
                     return;
                 }
-                Statement *inputStmt;
-                inputStmt = new InputStmt((IdentifierExp *)val);
-                program.setParsedStatement(lineNumber, inputStmt);
-                return;
-            }
-            if (token == "PRINT") {
+                stmt = new InputStmt((IdentifierExp *)val);
+            } else if (token == "PRINT") {
                 Expression *tmpExp = readE(scanner, 1);
                 if (scanner.hasMoreTokens()) {
                     std::cout << "SYNTAX ERROR\n";
                     return;
                 }
-                Statement *printStmt;
-                printStmt = new PrintStmt(tmpExp);
-                program.setParsedStatement(lineNumber, printStmt);
-                return;
-            }
-            if (token == "END") {
+                stmt = new PrintStmt(tmpExp);
+            } else if (token == "END") {
                 if (scanner.hasMoreTokens()) {
                     std::cout << "SYNTAX ERROR\n";
                     return;
                 }
-                Statement *endStmt;
-                endStmt = new EndStmt;
-                program.setParsedStatement(lineNumber, endStmt);
-                return;
-            }
-            if (token == "IF") {
+                stmt = new EndStmt;
+            } else if (token == "IF") {
                 Expression *lhs = readE(scanner, 1);
                 std::string cmp = scanner.nextToken();
-                if (cmp != "<" || cmp != ">" || cmp != "=") {
+                if (cmp != "<" && cmp != ">" && cmp != "=") {
                     std::cout << "SYNTAX ERROR\n";
                     return;
                 }
@@ -131,12 +118,8 @@ void processLine(std::string line, Program &program, EvalState &state) {
                     std::cout << "SYNTAX ERROR\n";
                     return;
                 }
-                Statement *ifStmt;
-                ifStmt = new IfStmt(lhs, cmp, rhs, stringToInteger(token));
-                program.setParsedStatement(lineNumber, ifStmt);
-                return;
-            }
-            if (token == "GOTO") {
+                stmt = new IfStmt(lhs, cmp, rhs, stringToInteger(token));
+            } else if (token == "GOTO") {
                 token = scanner.nextToken();
                 if (scanner.getTokenType(token) != NUMBER) {
                     std::cout << "SYNTAX ERROR\n";
@@ -146,12 +129,13 @@ void processLine(std::string line, Program &program, EvalState &state) {
                     std::cout << "SYNTAX ERROR\n";
                     return;
                 }
-                Statement *goToStmt;
-                goToStmt = new GoToStmt(stringToInteger(token));
-                program.setParsedStatement(lineNumber, goToStmt);
+                stmt = new GoToStmt(stringToInteger(token));
+            } else {
+                std::cout << "SYNTAX ERROR\n";
                 return;
             }
-            std::cout << "SYNTAX ERROR\n";
+            program.addSourceLine(lineNumber, line);
+            program.setParsedStatement(lineNumber, stmt);
         } else if (scanner.getTokenType(token) == WORD) {
             if (token == "LET") {
                 Expression *tmpExp = readE(scanner);
@@ -161,6 +145,7 @@ void processLine(std::string line, Program &program, EvalState &state) {
                 }
                 Statement *letStmt;
                 letStmt = new LetStmt(tmpExp);
+                program.addTemporaryLine(letStmt);
                 letStmt->execute(state, program);
                 return;
             }
@@ -172,6 +157,7 @@ void processLine(std::string line, Program &program, EvalState &state) {
                 }
                 Statement *inputStmt;
                 inputStmt = new InputStmt((IdentifierExp *)val);
+                program.addTemporaryLine(inputStmt);
                 inputStmt->execute(state, program);
                 return;
             }
@@ -183,6 +169,7 @@ void processLine(std::string line, Program &program, EvalState &state) {
                 }
                 Statement *printStmt;
                 printStmt = new PrintStmt(tmpExp);
+                program.addTemporaryLine(printStmt);
                 printStmt->execute(state, program);
                 return;
             }
@@ -193,6 +180,7 @@ void processLine(std::string line, Program &program, EvalState &state) {
                 }
                 Statement *runStmt;
                 runStmt = new RunStmt;
+                program.addTemporaryLine(runStmt);
                 runStmt->execute(state, program);
                 return;
             }
@@ -204,6 +192,7 @@ void processLine(std::string line, Program &program, EvalState &state) {
                 Statement *listStmt;
                 listStmt = new ListStmt;
                 listStmt->execute(state, program);
+                delete listStmt;
                 return;
             }
             if (token == "HELP") {
@@ -214,6 +203,7 @@ void processLine(std::string line, Program &program, EvalState &state) {
                 Statement *helpStmt;
                 helpStmt = new HelpStmt;
                 helpStmt->execute(state, program);
+                delete helpStmt;
                 return;
             }
             if (token == "CLEAR") {
@@ -224,6 +214,7 @@ void processLine(std::string line, Program &program, EvalState &state) {
                 Statement *clearStmt;
                 clearStmt = new ClearStmt;
                 clearStmt->execute(state, program);
+                delete clearStmt;
                 return;
             }
             if (token == "QUIT") {
@@ -234,7 +225,8 @@ void processLine(std::string line, Program &program, EvalState &state) {
                 Statement *quitStmt;
                 quitStmt = new QuitStmt;
                 quitStmt->execute(state, program);
-                return;
+                delete quitStmt;
+                exit(0);
             }
             std::cout << "SYNTAX ERROR\n";
         } else {
